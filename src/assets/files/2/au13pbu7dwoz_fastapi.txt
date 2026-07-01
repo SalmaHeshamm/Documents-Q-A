@@ -1,0 +1,6 @@
+uvicorn (file name):(object name) -> # uvicorn main:app     to run fastapi as web server
+uvicorn (file name):(object name) --reload                  to run fastapi webserver and auto reload changes
+uvicorn (file name):(object name) --reload --host 0.0.0.0 --port 5000       to enable everyone to accses the api and change the port
+
+in the browser : http://127.0.0.1:8000/docs enable us to test from swagger
+
