@@ -1,5 +1,4 @@
 import os
-
 from .BaseController import BaseController
 from fastapi import UploadFile
 from models import ResponseSignal
@@ -31,7 +30,7 @@ class DataController(BaseController):
         while(os.path.exists(new_file_path)):
             random_key = self.generate_random_string()
             new_file_path = os.path.join(project_path, f"{random_key}_{cleaned_filename}")
-        return new_file_path, random_key
+        return new_file_path, random_key + "_" + cleaned_filename
 
     def get_clean_filename(self, original_filename: str):
 
