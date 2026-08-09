@@ -9,7 +9,9 @@ import logging
 from .schemes.data import ProcessRequest
 from models.ProjectModel import ProjectModel
 from models.ChunkModel import ChunkModel
-from models.db_schemes import DataChunk
+from models.db_schemes import DataChunk, Asset
+from models.AssetModel import AssetModel
+from models.enums.AssetTypeEnum import AssetTypeEnum
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -39,18 +41,30 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
     try:
         async with aiofiles.open(file_path, 'wb') as f:
             while chunk := await file.read(app_settings.FILE_DEFAULT_CHUNK_SIZE): 
-                    await f.write(chunk)
+                    await f.write(chunk)                
     except Exception as e:
         logger.error(f"Error occurred while uploading file: {e}")
+
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"signal": ResponseSignal.FILE_UPLOAD_FAILED.value}
         )
-        
+
+
+    asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
+
+    asset_resource = Asset(
+        asset_project_id=project.id,
+        asset_type=AssetTypeEnum.FILE.value, 
+        asset_name=file_id,
+        asset_size=os.path.getsize(file_path)
+    )
+
+    asset_record = await asset_model.insert_asset(asset=asset_resource)
         
     return JSONResponse(
         content={"signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
-                 "file_id": file_id
+                 "file_id": str(asset_record.id),
         }
     )
 
