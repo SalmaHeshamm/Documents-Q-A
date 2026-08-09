@@ -7,11 +7,11 @@ from models import ProcessingEnum
 
 class ProcessController(BaseController):
 
-    def __init__(self, project_id: str):
+    def __init__(self, project_name: str):
         super().__init__()
 
-        self.project_id = project_id
-        self.project_path = ProjectController().get_project_path(project_id)
+        self.project_name = project_name
+        self.project_path = ProjectController().get_project_path(project_name=self.project_name)
 
     
     def get_file_extension(self, file_id: str):
@@ -21,6 +21,9 @@ class ProcessController(BaseController):
 
         file_path = os.path.join(self.project_path, file_id)
         file_extension = self.get_file_extension(file_id= file_id)
+
+        if not os.path.exists(file_path):
+            return None
 
         if file_extension == ProcessingEnum.TEXT.value:
             return TextLoader(file_path, encoding='utf-8')

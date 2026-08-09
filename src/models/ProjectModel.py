@@ -32,11 +32,11 @@ class ProjectModel(BaseDataModel):
         return project
 
     
-    async def get_project_or_create_one(self, project_id: str):
-        record = await self.collection.find_one({"project_id": project_id})
+    async def get_project_or_create_one(self, project_name: str):
+        record = await self.collection.find_one({"project_name": project_name})
 
         if record is None:
-            project = Project(project_id=project_id)
+            project = Project(project_name=project_name)
             project = await self.create_project(project)
 
             return project

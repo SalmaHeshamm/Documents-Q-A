@@ -4,12 +4,12 @@ from bson import ObjectId
 
 class Project(BaseModel):
     id: Optional[ObjectId] = Field(default=None, alias="_id")
-    project_id: str = Field(..., min_length=1)
+    project_name: str = Field(..., min_length=1)
 
-    @validator('project_id')
-    def validate_project_id(cls, value):
+    @validator('project_name')
+    def validate_project_name(cls, value):
         if not value.isalnum():
-            raise ValueError('project_id must be alphanumeric')
+            raise ValueError('project_name must be alphanumeric')
         
         return value
 
@@ -22,9 +22,9 @@ class Project(BaseModel):
         return [
             {
                 "key": [
-                    ("project_id", 1)
+                    ("project_name", 1)
                 ],
-                "name": "project_id_index",
+                "name": "project_name_index",
                 "unique": True
             }
         ]
