@@ -1,8 +1,8 @@
-from llm import LLMIntrface, CohereEnums, DocumentTypeEnum
+from stores.llm import LLMInterface, CohereEnums, DocumentTypeEnum
 import cohere
 import logging
 
-class CohereProvider(LLMIntrface):
+class CohereProvider(LLMInterface):
 
     def __init__(self, api_key: str,
                  default_input_max_characters: int = 1000,

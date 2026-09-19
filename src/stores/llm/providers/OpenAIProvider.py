@@ -1,8 +1,8 @@
-from llm import LLMIntrface, OpenAIEnums
+from stores.llm import LLMInterface, OpenAIEnums
 from openai import OpenAI
 import logging
 
-class OpenAIProvider(LLMIntrface):
+class OpenAIProvider(LLMInterface):
 
     def __init__(self, api_key: str, api_url: str = None,
                  default_input_max_characters: int = 1000,

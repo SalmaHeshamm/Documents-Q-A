@@ -1,8 +1,8 @@
-from llm import LLMIntrface, GroqEnums
+from stores.llm import LLMInterface, GroqEnums
 from groq import Groq
 import logging
 
-class GroqProvider(LLMIntrface):
+class GroqProvider(LLMInterface):
 
     def __init__(self, api_key: str, api_url: str = None,
                  default_input_max_characters: int = 1000,
