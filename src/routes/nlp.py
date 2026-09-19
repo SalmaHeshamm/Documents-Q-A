@@ -121,6 +121,6 @@ async def query_project_index(request: Request, project_name: str, query_request
     return JSONResponse(
         content = {
             "signal": ResponseSignal.QUERY_VECTOR_DB_SUCCESS.value,
-            "results": results
+            "results": [result.dict() for result in results]
         }
     )
