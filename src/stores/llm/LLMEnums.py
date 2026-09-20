@@ -14,6 +14,7 @@ class CohereEnums(Enum):
     SYSTEM = "SYSTEM"
     USER = "USER"
     ASSISTANT = "CHATBOT"
+    
     DOCUMENT = "search_document"
     QUERY = "search_query"
 

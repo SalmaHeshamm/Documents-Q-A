@@ -10,7 +10,7 @@ class OpenAIProvider(LLMInterface):
                  default_generation_temperature: float = 0.1):
         
         self.api_key = api_key
-        self.api_url = api_url
+        self.base_url = api_url 
 
         self.default_input_max_characters = default_input_max_characters
         self.default_generation_max_tokens = default_generation_max_tokens
@@ -22,8 +22,10 @@ class OpenAIProvider(LLMInterface):
         self.embedding_size = None
 
         self.client = OpenAI(api_key = self.api_key,
-                             api_url = self.api_url)
+                             base_url = self.base_url if self.base_url and len(self.base_url) else None)
 
+        self.enums = OpenAIEnums
+        
         self.logger = logging.getLogger(__name__)
 
 
@@ -68,7 +70,7 @@ class OpenAIProvider(LLMInterface):
         if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
             self.logger.error("Error while generation text with OpenAI")
 
-        return response.choices[0].message["content"]
+        return response.choices[0].message.content
 
 
     def construct_prompt(self, prompt: str, role: str):

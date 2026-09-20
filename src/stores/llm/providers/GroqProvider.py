@@ -2,13 +2,14 @@ from stores.llm import LLMInterface, GroqEnums
 from groq import Groq
 import logging
 
+
 class GroqProvider(LLMInterface):
 
     def __init__(self, api_key: str, api_url: str = None,
                  default_input_max_characters: int = 1000,
                  default_generation_max_tokens: int = 1000,
                  default_generation_temperature: float = 0.1):
-        
+
         self.api_key = api_key
         self.api_url = api_url
 
@@ -21,7 +22,9 @@ class GroqProvider(LLMInterface):
         self.embedding_model_name = None
         self.embedding_size = None
 
-        self.client = Groq(api_key= self.api_key)
+        self.client = Groq(api_key=self.api_key)
+
+        self.enums = GroqEnums
 
         self.logger = logging.getLogger(__name__)
 
@@ -39,32 +42,61 @@ class GroqProvider(LLMInterface):
         return text[:self.default_input_max_characters].strip()
 
 
-    def generate_text(self, prompt: str, chat_history: list=[], max_output_tokens: int = None,
-                       temperature: float = None ):
+    def generate_text(
+        self,
+        prompt: str,
+        chat_history: list = None,
+        max_output_tokens: int = None,
+        temperature: float = None
+    ):
 
         if not self.client:
-            self.logger.error("Qroq client wasn't set")
+            self.logger.error("Groq client wasn't set")
             return None
 
         if not self.generation_model_name:
             self.logger.error("Generation model for Groq wasn't set")
             return None
 
-        max_output_tokens = max_output_tokens if max_output_tokens else self.default_generation_max_tokens
-        temperature = temperature if temperature else self.default_generation_temperature
-
-        response = self.client.chat.completions.create(
-            model= self.generation_model_name,
-            messages= [self.construct_prompt(prompt= prompt, 
-                                             role= GroqEnums.USER.value)],
-            temperature= temperature,
-            max_completion_tokens= max_output_tokens
+        max_output_tokens = (
+            max_output_tokens
+            if max_output_tokens is not None
+            else self.default_generation_max_tokens
         )
 
-        if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
-            self.logger.error("Error while generation text with Groq")
+        temperature = (
+            temperature
+            if temperature is not None
+            else self.default_generation_temperature
+        )
+
+        # Start with existing chat history
+        messages = chat_history.copy() if chat_history else []
+
+        # Add the current prompt WITHOUT truncating it
+        messages.append({
+            "role": GroqEnums.USER.value,
+            "content": prompt.strip()
+        })
+
+        response = self.client.chat.completions.create(
+            model=self.generation_model_name,
+            messages=messages,
+            temperature=temperature,
+            max_completion_tokens=max_output_tokens
+        )
+
+        if (
+            not response
+            or not response.choices
+            or len(response.choices) == 0
+            or not response.choices[0].message
+        ):
+            self.logger.error("Error while generating text with Groq")
+            return None
 
         return response.choices[0].message.content
+
 
     def embed_text(self, text: str, document_type: str = None):
         raise NotImplementedError
@@ -75,4 +107,3 @@ class GroqProvider(LLMInterface):
             "role": role,
             "content": self.process_text(prompt)
         }
-    
