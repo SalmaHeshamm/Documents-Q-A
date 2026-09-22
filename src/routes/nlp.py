@@ -11,7 +11,7 @@ logger = logging.getLogger('uvicorn.error')
 nlp_router = APIRouter(prefix="/api/v1/nlp", tags=["api_v1", "nlp"])
 
 @nlp_router.post("/index/push/{project_name}")
-async def index_project(request: Request, project_name: str, push_request: PushRequest):
+async def index_project(request: Request, project_name: int, push_request: PushRequest):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
     chunk_model = await ChunkModel.create_instance(db_client=request.app.db_client)
@@ -39,7 +39,7 @@ async def index_project(request: Request, project_name: str, push_request: PushR
     idx = 0
 
     while has_records:
-        page_chunks = await chunk_model.get_project_chunks(project_id=project.id, page_no=page_no)
+        page_chunks = await chunk_model.get_project_chunks(project_id=project.project_id, page_no=page_no)
 
         if len(page_chunks):
             page_no += 1
@@ -73,7 +73,7 @@ async def index_project(request: Request, project_name: str, push_request: PushR
 
         
 @nlp_router.get("/index/info/{project_name}")
-async def get_project_index_info(request: Request, project_name: str):
+async def get_project_index_info(request: Request, project_name: int):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
 
@@ -96,7 +96,7 @@ async def get_project_index_info(request: Request, project_name: str):
     )
 
 @nlp_router.post("/index/query/{project_name}")
-async def query_project_index(request: Request, project_name: str, query_request: QueryRequest):
+async def query_project_index(request: Request, project_name: int, query_request: QueryRequest):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
 
@@ -130,7 +130,7 @@ async def query_project_index(request: Request, project_name: str, query_request
 
 
 @nlp_router.post("/index/answer/{project_name}")
-async def answer_Rag(request: Request, project_name: str, query_request: QueryRequest):
+async def answer_Rag(request: Request, project_name: int, query_request: QueryRequest):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
 

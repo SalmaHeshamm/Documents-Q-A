@@ -19,7 +19,7 @@ data_router = APIRouter(prefix="/api/v1/data", tags=["api_v1", "data"])
 
 
 @data_router.post("/upload/{project_name}")
-async def upload_data(request: Request, project_name: str, file: UploadFile, 
+async def upload_data(request: Request, project_name: int, file: UploadFile, 
                       app_settings: Settings = Depends(get_settings)):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
@@ -54,7 +54,7 @@ async def upload_data(request: Request, project_name: str, file: UploadFile,
     asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
 
     asset_resource = Asset(
-        asset_project_id=project.id,
+        asset_project_id=project.project_id,
         asset_type=AssetTypeEnum.FILE.value, 
         asset_name=file_id,
         asset_size=os.path.getsize(file_path)
@@ -64,14 +64,14 @@ async def upload_data(request: Request, project_name: str, file: UploadFile,
         
     return JSONResponse(
         content={"signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
-                 "file_id": str(asset_record.id),
+                 "file_id": str(asset_record.asset_id),
         }
     )
 
 
 
 @data_router.post('/process/{project_name}')
-async def process_endpoint(request: Request, project_name: str, process_request: ProcessRequest):
+async def process_endpoint(request: Request, project_name: int, process_request: ProcessRequest):
 
     chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap
@@ -87,7 +87,7 @@ async def process_endpoint(request: Request, project_name: str, process_request:
     project_file_ids = {}
 
     if process_request.file_name:
-        asset_record = await asset_model.get_asset_record(asset_project_id=project.id, asset_name=process_request.file_name)
+        asset_record = await asset_model.get_asset_record(asset_project_id=project.project_id, asset_name=process_request.file_name)
         if asset_record is None:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -96,13 +96,13 @@ async def process_endpoint(request: Request, project_name: str, process_request:
                 }
             )
         project_file_ids = {
-            asset_record.id: asset_record.asset_name
+            asset_record.asset_id: asset_record.asset_name
         }
 
     else:
         asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
-        project_files = await asset_model.get_all_project_assets(asset_project_id=project.id, asset_type=AssetTypeEnum.FILE.value)
-        project_file_ids = {record.id: record.asset_name for record in project_files}
+        project_files = await asset_model.get_all_project_assets(asset_project_id=project.project_id, asset_type=AssetTypeEnum.FILE.value)
+        project_file_ids = {record.asset_project_id: record.asset_name for record in project_files}
 
     if len(project_file_ids) == 0:
         return JSONResponse(
@@ -114,7 +114,7 @@ async def process_endpoint(request: Request, project_name: str, process_request:
 
 
     if do_reset == 1:
-         _ = await chunk_model.delete_chunks_by_project_id(project_id=project.id)
+         _ = await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
 
     process_controller = ProcessController(project_name=project.project_name)
 
@@ -145,7 +145,7 @@ async def process_endpoint(request: Request, project_name: str, process_request:
                 chunk_text=chunk.page_content,
                 chunk_metadata=chunk.metadata,
                 chunk_order= i + 1,
-                chunk_project_id= project.id,
+                chunk_project_id= project.project_id,
                 chunk_asset_id= asset_id
                 
             )
