@@ -1,1 +1,1 @@
-from rag.schemes import Project, DataChunk, Asset, RetrievedDocument
+from .rag.schemes import Project, DataChunk, Asset, RetrievedDocument

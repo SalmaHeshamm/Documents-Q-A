@@ -15,17 +15,17 @@ class NLPController(BaseController):
         self.generation_client = generation_client
         self.template_parser = template_parser
 
-    def create_collection_name(self, project_name: str) -> str:
-        return f"{project_name}_collection".strip().lower().replace(" ", "_")
+    def create_collection_name(self, project_id: str) -> str:
+        return f"{project_id}_collection".strip().lower().replace(" ", "_")
 
 
     def reset_vector_db_collection(self, project: Project):
-        collection_name = self.create_collection_name(project.project_name)
+        collection_name = self.create_collection_name(project.project_id)
         return self.vectordb_client.delete_collection(collection_name=collection_name)
 
 
     def get_vector_db_collection_info(self, project: Project):
-        collection_name = self.create_collection_name(project.project_name)
+        collection_name = self.create_collection_name(project.project_id)
         collection_info =  self.vectordb_client.get_collection_info(collection_name=collection_name)
 
         return json.loads(
@@ -37,7 +37,7 @@ class NLPController(BaseController):
                              chunk_ids: List[int], do_reset: bool = False):
         
         # get collection name
-        collection_name = self.create_collection_name(project.project_name)
+        collection_name = self.create_collection_name(project.project_id)
 
         # manage items
         texts = [ chunk.chunk_text for chunk in chunks]
@@ -66,7 +66,7 @@ class NLPController(BaseController):
 
 
     def query_vector_db_collection(self, project: Project, query_text: str, limit: int = 5):
-        collection_name = self.create_collection_name(project.project_name)
+        collection_name = self.create_collection_name(project.project_id)
 
         query_vector = self.embedding_client.embed_text(text=query_text, document_type= DocumentTypeEnum.QUERY.value)
 

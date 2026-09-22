@@ -13,7 +13,6 @@ class ProjectModel(BaseDataModel):
     @classmethod
     async def create_instance(cls, db_client:object):
         instance = cls(db_client)
-        await instance.init_collection()
         return instance
 
     async def create_project(self, project: Project):
@@ -26,19 +25,22 @@ class ProjectModel(BaseDataModel):
 
         return project
 
-    async def get_project_or_create_one(self, project_name: str):
+    async def get_project_or_create_one(self, project_id: str):
 
         async with self.db_client() as session:
              async with session.begin():
-                query = select(Project).where(Project.project_id == project_name)
-                project_rec = query.select_one_or_none()
+                query = select(Project).where(Project.project_id == project_id)
+                result = await session.execute(query)
+                project = result.scalar_one_or_none()
+                if project is None:
+                    project_rec = Project(
+                        project_id = project_id
+                    )
 
-                if project_rec is None:
-                    project_rec = Project(project_id = project_name)
-                    project = self.create_project(project=project_rec)
+                    project = await self.create_project(project=project_rec)
                     return project
                 else:
-                    return project              
+                    return project           
 
     async def get_all_projects(self, page: int=1, page_size: int=10):
 

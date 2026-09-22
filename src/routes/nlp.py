@@ -10,13 +10,13 @@ logger = logging.getLogger('uvicorn.error')
 
 nlp_router = APIRouter(prefix="/api/v1/nlp", tags=["api_v1", "nlp"])
 
-@nlp_router.post("/index/push/{project_name}")
-async def index_project(request: Request, project_name: int, push_request: PushRequest):
+@nlp_router.post("/index/push/{project_id}")
+async def index_project(request: Request, project_id: int, push_request: PushRequest):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
     chunk_model = await ChunkModel.create_instance(db_client=request.app.db_client)
 
-    project = await project_model.get_project_or_create_one(project_name=project_name)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
 
     if not project:
         return JSONResponse(
@@ -72,12 +72,12 @@ async def index_project(request: Request, project_name: int, push_request: PushR
     )
 
         
-@nlp_router.get("/index/info/{project_name}")
-async def get_project_index_info(request: Request, project_name: int):
+@nlp_router.get("/index/info/{project_id}")
+async def get_project_index_info(request: Request, project_id: int):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
 
-    project = await project_model.get_project_or_create_one(project_name=project_name)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
 
     nlp_controller = NLPController(
         embedding_client=request.app.embedding_client,
@@ -95,12 +95,12 @@ async def get_project_index_info(request: Request, project_name: int):
         }
     )
 
-@nlp_router.post("/index/query/{project_name}")
-async def query_project_index(request: Request, project_name: int, query_request: QueryRequest):
+@nlp_router.post("/index/query/{project_id}")
+async def query_project_index(request: Request, project_id: int, query_request: QueryRequest):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
 
-    project = await project_model.get_project_or_create_one(project_name=project_name)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
 
     nlp_controller = NLPController(
         embedding_client=request.app.embedding_client,
@@ -129,12 +129,12 @@ async def query_project_index(request: Request, project_name: int, query_request
     )
 
 
-@nlp_router.post("/index/answer/{project_name}")
-async def answer_Rag(request: Request, project_name: int, query_request: QueryRequest):
+@nlp_router.post("/index/answer/{project_id}")
+async def answer_Rag(request: Request, project_id: int, query_request: QueryRequest):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
 
-    project = await project_model.get_project_or_create_one(project_name=project_name)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
 
     nlp_controller = NLPController(
         embedding_client=request.app.embedding_client,

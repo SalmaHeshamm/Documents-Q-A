@@ -18,12 +18,12 @@ logger = logging.getLogger('uvicorn.error')
 data_router = APIRouter(prefix="/api/v1/data", tags=["api_v1", "data"])
 
 
-@data_router.post("/upload/{project_name}")
-async def upload_data(request: Request, project_name: int, file: UploadFile, 
+@data_router.post("/upload/{project_id}")
+async def upload_data(request: Request, project_id: int, file: UploadFile, 
                       app_settings: Settings = Depends(get_settings)):
 
     project_model = await ProjectModel.create_instance(db_client=request.app.db_client)
-    project = await project_model.get_project_or_create_one(project_name=project_name)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
     
     data_controller = DataController()
 
@@ -34,8 +34,8 @@ async def upload_data(request: Request, project_name: int, file: UploadFile,
             content={"signal": result_signal}
         )
     
-    project_dir_path = ProjectController().get_project_path(project_name=project_name)
-    file_path, file_id = data_controller.generate_unique_filepath(original_filename=file.filename, project_name=project_name)
+    project_dir_path = ProjectController().get_project_path(project_id=project_id)
+    file_path, file_id = data_controller.generate_unique_filepath(original_filename=file.filename, project_id=project_id)
     
 
     try:
@@ -60,7 +60,7 @@ async def upload_data(request: Request, project_name: int, file: UploadFile,
         asset_size=os.path.getsize(file_path)
     )
 
-    asset_record = await asset_model.insert_asset(asset=asset_resource)
+    asset_record = await asset_model.create_asset(asset=asset_resource)
         
     return JSONResponse(
         content={"signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
@@ -70,15 +70,15 @@ async def upload_data(request: Request, project_name: int, file: UploadFile,
 
 
 
-@data_router.post('/process/{project_name}')
-async def process_endpoint(request: Request, project_name: int, process_request: ProcessRequest):
+@data_router.post('/process/{project_id}')
+async def process_endpoint(request: Request, project_id: int, process_request: ProcessRequest):
 
     chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap
     do_reset = process_request.do_reset
 
     project_model = await ProjectModel.create_instance(db_client= request.app.db_client)
-    project = await project_model.get_project_or_create_one(project_name=project_name)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
 
     asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
 
@@ -102,7 +102,7 @@ async def process_endpoint(request: Request, project_name: int, process_request:
     else:
         asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
         project_files = await asset_model.get_all_project_assets(asset_project_id=project.project_id, asset_type=AssetTypeEnum.FILE.value)
-        project_file_ids = {record.asset_project_id: record.asset_name for record in project_files}
+        project_file_ids = {record.asset_id: record.asset_name for record in project_files}
 
     if len(project_file_ids) == 0:
         return JSONResponse(
@@ -116,7 +116,7 @@ async def process_endpoint(request: Request, project_name: int, process_request:
     if do_reset == 1:
          _ = await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
 
-    process_controller = ProcessController(project_name=project.project_name)
+    process_controller = ProcessController(project_id=project.project_id)
 
     no_records = 0
     no_files = 0
@@ -154,7 +154,7 @@ async def process_endpoint(request: Request, project_name: int, process_request:
             
         ]
 
-        no_records += await chunk_model.insert_chunks_bulk(chunks=file_chunks_report, batch_size=100)
+        no_records += await chunk_model.insert_many_chunks(chunks=file_chunks_report, batch_size=100)
         no_files += 1
 
     return JSONResponse(
