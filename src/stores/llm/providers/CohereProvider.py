@@ -1,6 +1,7 @@
 from stores.llm import LLMInterface, CohereEnums, DocumentTypeEnum
 import cohere
 import logging
+from typing import List, Union
 
 class CohereProvider(LLMInterface):
 
@@ -39,14 +40,17 @@ class CohereProvider(LLMInterface):
         return text[:self.default_input_max_characters].strip()
     
 
-    def embed_text(self, text: str, document_type: str = None):
+    def embed_text(self, text: Union[str, List[str]], document_type: str = None):
 
         if not self.client:
             self.logger.error("CoHere client wasn't set")
             return None
-        
+
+        if isinstance(text, str):
+            text = [text]
+
         if not self.embedding_model_name:
-            self.logger.error("CoHere model for OpenAI wasn't set")
+            self.logger.error("Embedding model for Cohere wasn't set")
             return None
 
         input_type = CohereEnums.DOCUMENT
@@ -56,7 +60,7 @@ class CohereProvider(LLMInterface):
 
         response = self.client.embed(
             model= self.embedding_model_name,
-            texts= [self.process_text(text)], 
+            texts= [self.process_text(t) for t in text], 
             input_type= input_type,
             embedding_types= ['float']
         )
@@ -65,7 +69,7 @@ class CohereProvider(LLMInterface):
             self.logger.error("Error while embedding text with CoHere")
             return None
 
-        return response.embeddings.float[0]
+        return [ f for f in response.embeddings.float]
 
 
     def generate_text(self, prompt: str, chat_history: list=[], max_output_tokens: int = None,

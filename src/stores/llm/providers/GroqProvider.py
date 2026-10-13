@@ -1,7 +1,7 @@
 from stores.llm import LLMInterface, GroqEnums
 from groq import Groq
 import logging
-
+from typing import List, Union
 
 class GroqProvider(LLMInterface):
 
@@ -98,7 +98,7 @@ class GroqProvider(LLMInterface):
         return response.choices[0].message.content
 
 
-    def embed_text(self, text: str, document_type: str = None):
+    def embed_text(self, text: Union[str, List[str]], document_type: str = None):
         raise NotImplementedError
 
 
