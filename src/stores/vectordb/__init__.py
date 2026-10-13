@@ -1,3 +1,3 @@
-from .VectorDBEnums import VectorDBEnums, DistanceMetricEnums
+from .VectorDBEnums import VectorDBEnums, DistanceMetricEnums, PgVectorTableSchemeEnums, PgVectorDistanceMetricEnums, PgVectorIndexTypeEnums 
 from .VectorDBInterface import VectorDBInterface
 from .VectorDBProviderFactory import VectorDBProviderFactory
