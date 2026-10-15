@@ -11,5 +11,5 @@ async def welcome(app_settings: Settings = Depends(get_settings)):
 
     return{
          'message': f'Welcome to the {application_name}!',
-         'message': f'YOU GOT THHATT'
+         'message2': f'YOU GOT THHATT'
     }
